@@ -1,0 +1,50 @@
+//@version=5
+indicator("Enhanced CRP Signal", overlay=true)
+
+// EMA settings
+length_10 = 10
+length_21 = 21
+length_50 = 50
+length_100 = 100
+
+ema_10 = ta.ema(close, length_10)
+ema_21 = ta.ema(close, length_21)
+ema_50 = ta.ema(close, length_50)
+ema_100 = ta.ema(close, length_100)
+
+// Stochastic RSI settings
+stoch_length = 14
+stoch_k = ta.stoch(close, high, low, stoch_length)
+stoch_d = ta.sma(stoch_k, 3)
+
+// RSI settings
+rsi_length = 14
+rsi = ta.rsi(close, rsi_length)
+
+// Define conditions for green arrow
+is_above_100_ema = close > ema_100
+is_in_zone_above = (close > ema_50) and (close < ema_21)
+stoch_cross_up = ta.crossover(stoch_k, stoch_d)
+stoch_below_30 = stoch_k < 30 // Slightly relaxed condition
+rsi_above_40 = rsi > 40 // Slightly relaxed condition
+
+// Define conditions for red arrow
+is_below_100_ema = close < ema_100
+is_in_zone_below = (close < ema_50) and (close > ema_21)
+stoch_cross_down = ta.crossunder(stoch_k, stoch_d)
+stoch_above_70 = stoch_k > 70 // Slightly relaxed condition
+rsi_below_60 = rsi < 60 // Slightly relaxed condition
+
+// Signal for green arrow
+signal_green = is_above_100_ema and is_in_zone_above and stoch_cross_up and stoch_below_30 and rsi_above_40
+
+// Signal for red arrow
+signal_red = is_below_100_ema and is_in_zone_below and stoch_cross_down and stoch_above_70 and rsi_below_60
+
+// Plot arrows with smaller size for visibility
+plotshape(series=signal_green, location=location.belowbar, color=color.green, style=shape.labelup, text="Buy", size=size.small)
+plotshape(series=signal_red, location=location.abovebar, color=color.red, style=shape.labeldown, text="Sell", size=size.small)
+
+// Create alerts
+alertcondition(signal_green, title="Green Arrow Alert", message="Green Arrow: Buy Signal")
+alertcondition(signal_red, title="Red Arrow Alert", message="Red Arrow: Sell Signal")
